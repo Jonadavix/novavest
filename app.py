@@ -1,7 +1,8 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 import sqlite3
 import hmac
+import hashlib
 from functools import wraps
 
 from flask import (
@@ -44,6 +45,7 @@ if not app.config["SECRET_KEY"]:
 
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_COOKIE_SECURE"] = True
 app.config["WTF_CSRF_TIME_LIMIT"] = 3600
 
 csrf = CSRFProtect(app)
@@ -85,6 +87,14 @@ def audit_log(conn, actor_type, actor_id, action, entity_type=None, entity_id=No
         entity_id,
         details
     ))
+
+
+def hash_reset_token(token):
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def generate_reset_token():
+    return secrets.token_urlsafe(32)
 
 
 def get_db():
@@ -254,6 +264,155 @@ USER_LOGIN_ATTEMPTS = {}
 USER_LOGIN_MAX_ATTEMPTS = 5
 USER_LOGIN_BLOCK_SECONDS = 300
 
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    if request.method == "POST":
+        email = request.form.get("email", "").strip().lower()
+
+        if not email:
+            return render_template(
+                "forgot_password.html",
+                error="Please enter your email address."
+            )
+
+        conn = get_db()
+
+        user = conn.execute(
+            """
+            SELECT id, email
+            FROM users
+            WHERE LOWER(email) = ?
+            """,
+            (email,)
+        ).fetchone()
+
+        if user:
+            raw_token = generate_reset_token()
+            token_hash = hash_reset_token(raw_token)
+
+            expires_at = datetime.utcnow() + timedelta(minutes=30)
+
+            conn.execute(
+                """
+                INSERT INTO password_reset_tokens
+                (user_id, token_hash, expires_at)
+                VALUES (?, ?, ?)
+                """,
+                (user["id"], token_hash, expires_at.isoformat())
+            )
+
+            conn.commit()
+
+            print(
+                "PASSWORD RESET TOKEN:",
+                raw_token
+            )
+
+        conn.close()
+
+        return render_template(
+            "forgot_password.html",
+            message="If an account with that email exists, a password reset link has been generated."
+        )
+
+    return render_template("forgot_password.html")
+
+
+
+@app.route("/reset-password/<token>", methods=["GET", "POST"])
+def reset_password(token):
+    token_hash = hash_reset_token(token)
+
+    conn = get_db()
+
+    reset_token = conn.execute(
+        """
+        SELECT id, user_id, expires_at, used_at
+        FROM password_reset_tokens
+        WHERE token_hash = ?
+        """,
+        (token_hash,)
+    ).fetchone()
+
+    if not reset_token:
+        conn.close()
+        return render_template(
+            "reset_password.html",
+            error="Invalid or expired password reset link."
+        )
+
+    if reset_token["used_at"] is not None:
+        conn.close()
+        return render_template(
+            "reset_password.html",
+            error="This password reset link has already been used."
+        )
+
+    try:
+        expires_at = datetime.fromisoformat(reset_token["expires_at"])
+    except (TypeError, ValueError):
+        conn.close()
+        return render_template(
+            "reset_password.html",
+            error="Invalid password reset link."
+        )
+
+    if datetime.utcnow() > expires_at:
+        conn.close()
+        return render_template(
+            "reset_password.html",
+            error="This password reset link has expired."
+        )
+
+    if request.method == "POST":
+        password = request.form.get("password", "")
+        confirm_password = request.form.get("confirm_password", "")
+
+        if len(password) < 8:
+            conn.close()
+            return render_template(
+                "reset_password.html",
+                error="Password must be at least 8 characters long."
+            )
+
+        if password != confirm_password:
+            conn.close()
+            return render_template(
+                "reset_password.html",
+                error="Passwords do not match."
+            )
+
+        password_hash = generate_password_hash(password)
+
+        conn.execute(
+            """
+            UPDATE users
+            SET password = ?
+            WHERE id = ?
+            """,
+            (password_hash, reset_token["user_id"])
+        )
+
+        conn.execute(
+            """
+            UPDATE password_reset_tokens
+            SET used_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+            """,
+            (reset_token["id"],)
+        )
+
+        conn.commit()
+        conn.close()
+
+        return redirect(url_for("login"))
+
+    conn.close()
+
+    return render_template("reset_password.html")
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
 
@@ -315,6 +474,66 @@ def login():
 
     return render_template("login.html")
 
+
+
+@app.route("/forgot-credentials", methods=["GET", "POST"])
+def forgot_credentials():
+
+    if request.method == "POST":
+
+        email = request.form.get("email", "").strip().lower()
+
+        if not email:
+            return render_template(
+                "forgot_credentials.html",
+                message="If an account exists for that email, recovery instructions will be sent."
+            )
+
+        conn = get_db()
+
+        user = conn.execute(
+            "SELECT id FROM users WHERE email = ? AND status = 'Active'",
+            (email,)
+        ).fetchone()
+
+        if user:
+
+            token = generate_reset_token()
+            token_hash = hash_reset_token(token)
+
+            conn.execute(
+                """
+                UPDATE password_reset_tokens
+                SET used_at = CURRENT_TIMESTAMP
+                WHERE user_id = ?
+                  AND used_at IS NULL
+                """,
+                (user["id"],)
+            )
+
+            conn.execute(
+                """
+                INSERT INTO password_reset_tokens
+                (user_id, token_hash, expires_at)
+                VALUES (
+                    ?,
+                    ?,
+                    datetime('now', '+30 minutes')
+                )
+                """,
+                (user["id"], token_hash)
+            )
+
+            conn.commit()
+
+        conn.close()
+
+        return render_template(
+            "forgot_credentials.html",
+            message="If an account exists for that email, recovery instructions will be sent."
+        )
+
+    return render_template("forgot_credentials.html")
 
 
 @app.route("/logout", methods=["POST"])
