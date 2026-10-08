@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Details - NovaVest</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            margin: 0;
+            color: #1f2937;
+        }
+
+        header {
+            background: #111827;
+            color: white;
+            padding: 18px 24px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 35px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,.06);
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #eee;
+            padding: 14px 0;
+            gap: 20px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: #ecfdf5;
+        }
+
+        a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <strong>NovaVest</strong>
+</header>
+
+<div class="container">
+
+    <div class="card">
+
+        <h1>{{ investment["name"] }}</h1>
+
+        <p>{{ investment["description"] }}</p>
+
+        <div class="row">
+            <strong>Investment ID</strong>
+            <span>#{{ investment["id"] }}</span>
+        </div>
+
+        <div class="row">
+            <strong>Amount</strong>
+            <span>₦{{ "{:,.2f}".format(investment["amount"]) }}</span>
+        </div>
+
+        <div class="row">
+            <strong>Status</strong>
+            <span class="status">{{ investment["status"] }}</span>
+        </div>
+
+        <div class="row">
+            <strong>Term</strong>
+            <span>{{ investment["term_days"] }} days</span>
+        </div>
+
+        <div class="row">
+            <strong>Management fee</strong>
+            <span>{{ "%.2f"|format(investment["management_fee_percent"]) }}%</span>
+        </div>
+
+        {% set expected_profit = investment["amount"] * investment["return_percent"] / 100 %}
+        {% set expected_total = investment["amount"] + expected_profit %}
+
+        <div class="row">
+            <strong>Return rate</strong>
+            <span>{{ "%.2f"|format(investment["return_percent"]) }}%</span>
+        </div>
+
+        <div class="row">
+            <strong>Expected profit</strong>
+            <span>₦{{ "{:,.2f}".format(expected_profit) }}</span>
+        </div>
+
+        <div class="row">
+            <strong>Expected maturity value</strong>
+            <strong>₦{{ "{:,.2f}".format(expected_total) }}</strong>
+        </div>
+
+        <div class="row">
+            <strong>Started</strong>
+            <span>{{ investment["started_at"] }}</span>
+        </div>
+
+        <div class="row">
+            <strong>Maturity</strong>
+            <span>{{ investment["maturity_at"] }}</span>
+        </div>
+
+        {% if investment["completed_at"] %}
+        <div class="row">
+            <strong>Completed</strong>
+            <span>{{ investment["completed_at"] }}</span>
+        </div>
+        {% endif %}
+
+        
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+        <div style="padding:12px; margin:15px 0; border-radius:8px;
+                    background:{% if category == 'success' %}#ecfdf5{% else %}#fef2f2{% endif %};">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endwith %}
+
+{% if investment["status"] == "ACTIVE" and not is_matured %}
+<div style="margin-top:20px; padding:14px; border-radius:8px;
+            background:#eff6ff; color:#1e40af;">
+    This investment is still active. You can settle it after
+    {{ investment["maturity_at"] }}.
+</div>
+{% endif %}
+
+{% if investment["status"] == "ACTIVE" and is_matured %}
+<form method="POST"
+      action="{{ url_for('settle_investment', investment_id=investment['id']) }}"
+      style="margin-top:20px;">
+
+    <input type="hidden"
+           name="csrf_token"
+           value="{{ csrf_token() }}">
+
+    <button type="submit"
+            style="padding:12px 18px; border:0; border-radius:8px;
+                   background:#111827; color:white;">
+        Settle Investment
+    </button>
+</form>
+{% endif %}
+
+<p style="margin-top:25px;">
+            Investment returns are not guaranteed. Investment value may decrease
+            as well as increase.
+        </p>
+
+        <p style="margin-top:25px;">
+            <a href="{{ url_for('investments') }}">← Back to Investments</a>
+        </p>
+
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investments - NovaVest</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            margin: 0;
+            color: #1f2937;
+        }
+
+        header {
+            background: #111827;
+            color: white;
+            padding: 18px 24px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .balance {
+            background: white;
+            padding: 18px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,.06);
+        }
+
+        .plans {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .card {
+            background: white;
+            padding: 22px;
+            border-radius: 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,.06);
+        }
+
+        .card h3 {
+            margin-top: 0;
+        }
+
+        .minimum {
+            font-size: 22px;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+
+        input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: 0;
+            border-radius: 8px;
+            background: #111827;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: .9;
+        }
+
+        .notice {
+            padding: 14px;
+            background: #fff7ed;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .investments {
+            margin-top: 35px;
+        }
+
+        .investment {
+            background: white;
+            padding: 18px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+
+        .success {
+            background: #ecfdf5;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .error {
+            background: #fef2f2;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+    
+@media (max-width: 600px) {
+    .container {
+        margin: 20px auto;
+        padding: 0 14px;
+    }
+
+    .top {
+        display: block;
+    }
+
+    .top h1 {
+        font-size: 30px;
+        margin-bottom: 8px;
+    }
+
+    .top p {
+        margin-top: 0;
+    }
+
+    .balance {
+        margin-top: 16px;
+        padding: 15px;
+    }
+
+    .plans {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        margin-top: 18px;
+    }
+
+    .card {
+        padding: 18px;
+    }
+
+    .minimum {
+        font-size: 24px;
+        margin: 12px 0 6px;
+    }
+
+    .notice {
+        margin-top: 16px;
+        font-size: 14px;
+    }
+
+    .investments {
+        margin-top: 25px;
+    }
+
+    .investment {
+        padding: 16px;
+    }
+
+    input,
+    button {
+        font-size: 16px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+    <strong>NovaVest</strong>
+</header>
+
+<div class="container">
+
+    <div class="top">
+        <div>
+            <h1>Investment Plans</h1>
+            <p>Choose an investment plan that matches your objectives and risk tolerance.</p>
+        </div>
+
+        <div class="balance">
+            Available Balance:
+            <strong>₦{{ "{:,.2f}".format(user["balance"]) }}</strong>
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <div class="notice">
+        <strong>Risk disclosure:</strong>
+        Investment values can rise or fall and losses are possible.
+        Past performance does not guarantee future results.
+    </div>
+
+    <div class="plans">
+
+        {% for plan in plans %}
+
+        <div class="card">
+            <h3>{{ plan["name"] }}</h3>
+
+            <p>{{ plan["description"] }}</p>
+
+            <div class="minimum">
+                ₦{{ "{:,.2f}".format(plan["minimum_amount"]) }}
+            </div>
+
+            <p>
+                Minimum investment
+            </p>
+
+            <p>
+                Term: <strong>{{ plan["term_days"] }} days</strong>
+            </p>
+
+            <p>
+                Return rate:
+                <strong>{{ "%.2f"|format(plan["return_percent"]) }}%</strong>
+            </p>
+
+            <p>
+                Expected return on minimum investment:
+                <strong>₦{{ "{:,.2f}".format(plan["minimum_amount"] * plan["return_percent"] / 100) }}</strong>
+            </p>
+
+            <p>
+                Management fee:
+                <strong>{{ "%.2f"|format(plan["management_fee_percent"]) }}%</strong>
+            </p>
+
+            <form method="POST" action="{{ url_for('create_investment', plan_id=plan['id']) }}" onsubmit="this.querySelector('button[type=submit]').disabled=true;">
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
+
+                <input
+                    type="hidden"
+                    name="request_token"
+                    value="{{ investment_request_token }}"
+                >
+
+                <label>Investment amount</label>
+
+                <input
+                    type="number"
+                    name="amount"
+                    min="{{ plan['minimum_amount'] }}"
+                    step="0.01"
+                    placeholder="Enter amount"
+                    required
+                >
+
+                <button type="submit">
+                    Invest
+                </button>
+
+            </form>
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+    <div class="investments">
+
+        <h2>Your Investments</h2>
+
+        {% if active_investments %}
+
+            {% for investment in active_investments %}
+
+            <div class="investment">
+
+                <strong>
+                    {{ investment["name"] }}
+                </strong>
+
+                <p>
+                    Amount:
+                    ₦{{ "{:,.2f}".format(investment["amount"]) }}
+                </p>
+
+                <p>
+                    Status:
+                    {{ investment["status"] }}
+                </p>
+
+                <p>
+                    Started:
+                    {{ investment["started_at"] }}
+                </p>
+
+                <p>
+                    Maturity:
+                    {{ investment["maturity_at"] }}
+                </p>
+
+                <a href="{{ url_for('investment_detail', investment_id=investment['id']) }}">
+                    View investment
+                </a>
+
+            </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <div class="card">
+                You don't have any investments yet.
+            </div>
+
+        {% endif %}
+
+    </div>
+
+    <p style="margin-top:30px;">
+        <a href="{{ url_for('dashboard') }}">← Back to Dashboard</a>
+    </p>
+
+</div>
+
+</body>
+</html>

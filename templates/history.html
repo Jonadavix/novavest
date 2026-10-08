@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Transaction History — NovaVest</title>
+
+<style>
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f7fb;
+    margin: 0;
+    color: #172033;
+}
+
+main {
+    padding: 30px 5%;
+}
+
+.transaction {
+    background: white;
+    padding: 20px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0,0,0,.05);
+}
+
+.amount {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.status {
+    margin-top: 8px;
+    font-weight: bold;
+}
+
+.pending {
+    color: #b45309;
+}
+
+.approved {
+    color: #15803d;
+}
+
+.rejected {
+    color: #b91c1c;
+}
+
+a {
+    color: #1d4ed8;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<main>
+
+<h1>Transaction History</h1>
+
+{% if transactions %}
+
+{% for transaction in transactions %}
+
+<div class="transaction">
+
+<h3>
+{{ transaction["transaction_type"] }}
+</h3>
+
+<div class="amount">
+₦{{ "%.2f"|format(transaction["amount"]) }}
+</div>
+
+<p>
+{{ transaction["description"] }}
+</p>
+
+<div class="status
+{% if transaction["status"] == "Pending" %}
+pending
+{% elif transaction["status"] == "Approved" %}
+approved
+{% elif transaction["status"] == "Rejected" %}
+rejected
+{% endif %}
+">
+
+Status: {{ transaction["status"] }}
+
+</div>
+
+<small>
+{{ transaction["created_at"] }}
+</small>
+
+</div>
+
+{% endfor %}
+
+{% else %}
+
+<p>
+You don't have any transactions yet.
+</p>
+
+{% endif %}
+
+<br>
+
+<a href="/dashboard">← Back to Dashboard</a>
+
+</main>
+
+</body>
+</html>

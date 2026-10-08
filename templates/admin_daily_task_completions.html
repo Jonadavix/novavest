@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Task Completion History - NovaVest Admin</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f5f7fb;
+    color: #172033;
+}
+
+header {
+    background: #101828;
+    color: white;
+    padding: 18px 6%;
+}
+
+header a {
+    color: white;
+    text-decoration: none;
+}
+
+main {
+    max-width: 1200px;
+    margin: auto;
+    padding: 30px 6%;
+}
+
+.card {
+    background: white;
+    padding: 22px;
+    border-radius: 14px;
+    box-shadow: 0 5px 20px rgba(0,0,0,.06);
+}
+
+.back {
+    color: #1d4ed8;
+    text-decoration: none;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    text-align: left;
+    padding: 12px 8px;
+    border-bottom: 1px solid #eaecf0;
+    vertical-align: top;
+}
+
+.reward {
+    font-weight: bold;
+    color: #067647;
+}
+
+.empty {
+    padding: 25px;
+    text-align: center;
+    color: #667085;
+}
+
+@media(max-width:700px) {
+    table {
+        display: block;
+        overflow-x: auto;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <strong>NovaVest Admin</strong>
+</header>
+
+<main>
+
+<a class="back" href="{{ url_for('admin_daily_tasks') }}">
+← Back to Daily Tasks Management
+</a>
+
+<h1>Task Completion History</h1>
+
+<div class="card">
+
+{% if completions %}
+
+<table>
+
+<thead>
+<tr>
+    <th>User</th>
+    <th>Email</th>
+    <th>Plan</th>
+    <th>Task</th>
+    <th>Reward</th>
+    <th>Date</th>
+    <th>Completed At</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for completion in completions %}
+
+<tr>
+
+<td>
+<strong>{{ completion["user_name"] }}</strong>
+</td>
+
+<td>
+{{ completion["user_email"] }}
+</td>
+
+<td>
+{{ completion["plan_name"] }}
+</td>
+
+<td>
+{{ completion["task_title"] }}
+</td>
+
+<td class="reward">
+₦{{ "{:,.2f}".format(completion["reward"]) }}
+</td>
+
+<td>
+{{ completion["task_date"] }}
+</td>
+
+<td>
+{{ completion["completed_at"] }}
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+{% else %}
+
+<div class="empty">
+No task completions have been recorded yet.
+</div>
+
+{% endif %}
+
+</div>
+
+</main>
+
+</body>
+</html>

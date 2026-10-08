@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maturity Monitor - NovaVest</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            margin: 0;
+            color: #1f2937;
+        }
+
+        header {
+            background: #111827;
+            color: white;
+            padding: 18px 24px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,.06);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background: #f9fafb;
+        }
+
+        .active {
+            font-weight: bold;
+        }
+
+        .completed {
+            font-weight: bold;
+        }
+
+        a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <strong>NovaVest — Admin</strong>
+</header>
+
+<div class="container">
+
+    <h1>Maturity Monitor</h1>
+
+    <p>
+        Review active and completed investments and their scheduled
+        maturity dates.
+    </p>
+
+    <div class="card">
+
+        {% if investments %}
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Plan</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Started</th>
+                    <th>Maturity</th>
+                    <th>Completed</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            {% for investment in investments %}
+
+                <tr>
+                    <td>#{{ investment["id"] }}</td>
+
+                    <td>
+                        {{ investment["email"] }}
+                    </td>
+
+                    <td>
+                        {{ investment["plan_name"] }}
+                    </td>
+
+                    <td>
+                        ₦{{ "%.2f"|format(investment["amount"]) }}
+                    </td>
+
+                    <td class="{% if investment['status'] == 'ACTIVE' %}active{% else %}completed{% endif %}">
+                        {{ investment["status"] }}
+                    </td>
+
+                    <td>
+                        {{ investment["started_at"] }}
+                    </td>
+
+                    <td>
+                        {{ investment["maturity_at"] }}
+                    </td>
+
+                    <td>
+                        {{ investment["completed_at"] or "—" }}
+                    </td>
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+        {% else %}
+
+        <p>No investments exist yet.</p>
+
+        {% endif %}
+
+    </div>
+
+    <p style="margin-top:25px;">
+        <a href="{{ url_for('admin_dashboard') }}">
+            ← Back to Admin Dashboard
+        </a>
+    </p>
+
+</div>
+
+</body>
+</html>

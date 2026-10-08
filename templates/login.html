@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Login — NovaVest</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .box {
+            background: white;
+            width: 90%;
+            max-width: 420px;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 35px rgba(0,0,0,.1);
+        }
+
+        input {
+            width: 100%;
+            padding: 13px;
+            margin: 8px 0 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: #1d4ed8;
+            color: white;
+            font-weight: bold;
+        }
+
+        a {
+            color: #1d4ed8;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="box">
+
+    <h1>Welcome Back</h1>
+
+    <p>Login to your account.</p>
+
+    <form method="POST">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <label>Email</label>
+
+        <input
+            type="email"
+            name="email"
+            placeholder="you@example.com"
+            required
+        >
+
+        <label>Password</label>
+
+        <input
+            type="password"
+            name="password"
+            placeholder="Your password"
+            required
+        >
+
+        <button type="submit">
+            Login
+        </button>
+
+    </form>
+
+    <p>
+        Don't have an account?
+        <a href="/register">Create one</a>
+    </p>
+
+    <p>
+        <a href="/">← Back to website</a>
+    </p>
+
+</div>
+
+</body>
+</html>

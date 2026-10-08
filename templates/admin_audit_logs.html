@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Logs - NovaVest</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            margin: 0;
+            color: #1f2937;
+        }
+
+        header {
+            background: #111827;
+            color: white;
+            padding: 18px 24px;
+        }
+
+        .container {
+            max-width: 1250px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,.06);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1000px;
+        }
+
+        th, td {
+            padding: 11px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: top;
+        }
+
+        th {
+            background: #f9fafb;
+        }
+
+        .details {
+            max-width: 350px;
+            word-break: break-word;
+        }
+
+        a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <strong>NovaVest — Admin</strong>
+</header>
+
+<div class="container">
+
+    <h1>Audit Logs</h1>
+
+    <p>
+        Recent administrative and financial activity.
+    </p>
+
+    <div class="card">
+
+        {% if logs %}
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Actor</th>
+                    <th>Action</th>
+                    <th>Entity</th>
+                    <th>Details</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            {% for log in logs %}
+
+                <tr>
+                    <td>#{{ log["id"] }}</td>
+
+                    <td>
+                        {{ log["actor_type"] }}
+                        {% if log["actor_id"] %}
+                            #{{ log["actor_id"] }}
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {{ log["action"] }}
+                    </td>
+
+                    <td>
+                        {% if log["entity_type"] %}
+                            {{ log["entity_type"] }}
+                            {% if log["entity_id"] %}
+                                #{{ log["entity_id"] }}
+                            {% endif %}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+
+                    <td class="details">
+                        {{ log["details"] or "—" }}
+                    </td>
+
+                    <td>
+                        {{ log["created_at"]|nice_datetime }}
+                    </td>
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+        {% else %}
+
+        <p>No audit records yet.</p>
+
+        {% endif %}
+
+    </div>
+
+    <p style="margin-top:25px;">
+        <a href="{{ url_for('admin_dashboard') }}">
+            ← Back to Admin Dashboard
+        </a>
+    </p>
+
+</div>
+
+</body>
+</html>

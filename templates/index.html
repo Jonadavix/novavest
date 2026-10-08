@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>NovaVest — Investment Platform</title>
+
+    <meta name="description"
+          content="NovaVest provides access to investment opportunities with transparent information and risk disclosure.">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f7fb;
+            color: #172033;
+            line-height: 1.6;
+        }
+
+        header {
+            background: #101828;
+            color: white;
+            padding: 18px 6%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 22px;
+            font-size: 14px;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #101828, #1d4ed8);
+            color: white;
+            padding: 90px 6%;
+        }
+
+        .hero-content {
+            max-width: 720px;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            line-height: 1.15;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            font-size: 18px;
+            margin-bottom: 30px;
+            color: #dbe5ff;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 14px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .primary {
+            background: white;
+            color: #1d4ed8;
+        }
+
+        .secondary {
+            border: 1px solid #ffffff;
+            color: white;
+        }
+
+        section {
+            padding: 70px 6%;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .section-title h2 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .section-title p {
+            color: #667085;
+        }
+
+        .plans {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 14px;
+            box-shadow: 0 8px 30px rgba(16, 24, 40, 0.08);
+        }
+
+        .card h3 {
+            margin-bottom: 12px;
+        }
+
+        .price {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 15px 0;
+            color: #1d4ed8;
+        }
+
+        .card ul {
+            list-style: none;
+            margin: 20px 0;
+        }
+
+        .card li {
+            margin-bottom: 10px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 24px;
+        }
+
+        .info-box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+        }
+
+        .risk {
+            background: #fff7ed;
+            border-left: 5px solid #f97316;
+        }
+
+        footer {
+            background: #101828;
+            color: white;
+            padding: 40px 6%;
+        }
+
+        footer p {
+            color: #b8c0cc;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 700px) {
+            nav {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">NovaVest</div>
+
+    <nav>
+        <a href="#plans">Plans</a>
+        <a href="#how">How It Works</a>
+        <a href="#risk">Risk</a>
+        <a href="#contact">Contact</a>
+        <a href="/login">Login</a>
+    </nav>
+</header>
+
+
+<section class="hero">
+
+    <div class="hero-content">
+
+        <h1>Build your financial future with transparency.</h1>
+
+        <p>
+            Explore investment opportunities, monitor your portfolio,
+            and manage your account from one secure platform.
+        </p>
+
+        <a href="/register" class="button primary">
+            Create Account
+        </a>
+
+        <a href="#plans" class="button secondary">
+            View Opportunities
+        </a>
+
+    </div>
+
+</section>
+
+
+<section id="plans">
+
+    <div class="section-title">
+
+        <h2>Investment Opportunities</h2>
+
+        <p>
+            Review the available opportunities and their associated risks
+            before making an investment decision.
+        </p>
+
+    </div>
+
+
+    <div class="plans">
+
+        <div class="card">
+
+            <h3>Starter</h3>
+
+            <p>Designed for investors starting with a smaller amount.</p>
+
+            <div class="price">From ₦10,000</div>
+
+            <ul>
+                <li>✓ Portfolio tracking</li>
+                <li>✓ Transaction history</li>
+                <li>✓ Account dashboard</li>
+            </ul>
+
+            <a href="/register" class="button primary">
+                Get Started
+            </a>
+
+        </div>
+
+
+        <div class="card">
+
+            <h3>Growth</h3>
+
+            <p>
+                A larger investment option with access to selected
+                investment opportunities.
+            </p>
+
+            <div class="price">From ₦50,000</div>
+
+            <ul>
+                <li>✓ Portfolio tracking</li>
+                <li>✓ Investment reports</li>
+                <li>✓ Account dashboard</li>
+            </ul>
+
+            <a href="/register" class="button primary">
+                Get Started
+            </a>
+
+        </div>
+
+
+        <div class="card">
+
+            <h3>Professional</h3>
+
+            <p>
+                For users who want access to higher-value opportunities.
+            </p>
+
+            <div class="price">From ₦250,000</div>
+
+            <ul>
+                <li>✓ Portfolio tracking</li>
+                <li>✓ Detailed reports</li>
+                <li>✓ Account dashboard</li>
+            </ul>
+
+            <a href="/register" class="button primary">
+                Get Started
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<section id="how">
+
+    <div class="section-title">
+
+        <h2>How It Works</h2>
+
+        <p>A simple process for managing your investment account.</p>
+
+    </div>
+
+
+    <div class="info-grid">
+
+        <div class="info-box">
+
+            <h3>1. Create an account</h3>
+
+            <p>
+                Register and provide the information required to
+                establish your account.
+            </p>
+
+        </div>
+
+
+        <div class="info-box">
+
+            <h3>2. Review opportunities</h3>
+
+            <p>
+                Examine the available investment information,
+                fees, risks and terms.
+            </p>
+
+        </div>
+
+
+        <div class="info-box">
+
+            <h3>3. Invest</h3>
+
+            <p>
+                Select an opportunity and complete the required
+                transaction through the supported payment method.
+            </p>
+
+        </div>
+
+
+        <div class="info-box">
+
+            <h3>4. Monitor</h3>
+
+            <p>
+                Track your investments and account activity through
+                your personal dashboard.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<section id="risk">
+
+    <div class="card risk">
+
+        <h2>Risk Disclosure</h2>
+
+        <br>
+
+        <p>
+            Investing involves risk. The value of investments can
+            increase or decrease, and you may lose some or all of
+            the money invested.
+        </p>
+
+        <br>
+
+        <p>
+            Past performance is not a guarantee of future results.
+            You should review the terms and risks of an investment
+            opportunity and consider obtaining independent financial
+            advice where appropriate.
+        </p>
+
+    </div>
+
+</section>
+
+
+<section id="contact">
+
+    <div class="section-title">
+
+        <h2>Contact Us</h2>
+
+        <p>
+            Have questions about your account or an investment opportunity?
+        </p>
+
+    </div>
+
+    <div class="info-box">
+
+        <p><strong>Email:</strong> support@example.com</p>
+
+        <p><strong>Business hours:</strong> Monday – Friday</p>
+
+    </div>
+
+</section>
+
+
+<footer>
+
+    <h3>NovaVest</h3>
+
+    <p>
+        Investment information and account management platform.
+    </p>
+
+    <p>
+        © 2026 NovaVest. All rights reserved.
+    </p>
+
+</footer>
+
+</body>
+</html>

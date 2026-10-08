@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Dashboard — NovaVest</title>
+
+<style>
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f5f7fb;
+    color: #172033;
+}
+
+header {
+    background: #101828;
+    color: white;
+    padding: 18px 6%;
+    display: flex;
+    justify-content: space-between;
+}
+
+header a {
+    color: white;
+    text-decoration: none;
+}
+
+main {
+    padding: 30px 6%;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+}
+
+.card {
+    background: white;
+    padding: 24px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,.06);
+}
+
+.amount {
+    font-size: 28px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.button {
+    display: block;
+    text-align: center;
+    padding: 15px;
+    background: #1d4ed8;
+    color: white;
+    text-decoration: none;
+    border-radius: 9px;
+    font-weight: bold;
+}
+
+.secondary {
+    background: #101828;
+}
+
+.notice {
+    margin-top: 25px;
+    padding: 18px;
+    background: #fff7ed;
+    border-left: 5px solid #f97316;
+    border-radius: 8px;
+}
+.action-link {
+    display: inline-block;
+    padding: 12px 18px;
+    margin: 6px 4px;
+    border-radius: 8px;
+    text-decoration: none;
+}
+
+.notification-link {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #ffffff !important;
+    border: 1px solid #1d4ed8;
+    font-weight: 700;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.22);
+    transition: all 0.2s ease;
+}
+
+.notification-link:hover {
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    color: #ffffff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 7px 16px rgba(37, 99, 235, 0.30);
+}
+
+.notification-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    margin-left: 6px;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: 800;
+    vertical-align: middle;
+}
+
+
+@media (max-width: 600px) {
+    header {
+        padding: 16px 5%;
+        gap: 16px;
+        align-items: center;
+    }
+
+    header a,
+    header strong {
+        font-size: 16px;
+    }
+
+    main {
+        padding: 24px 5%;
+    }
+
+    h1 {
+        font-size: 34px;
+        line-height: 1.15;
+    }
+
+    .cards {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .card {
+        padding: 20px;
+        border-radius: 14px;
+    }
+
+    .amount {
+        font-size: 25px;
+    }
+
+    .actions {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .button {
+        padding: 14px;
+    }
+}
+
+</style>
+
+</head>
+
+<body>
+<header>
+
+<strong>NovaVest</strong>
+
+<a href="{{ url_for('investments') }}">Investments</a>
+<a href="{{ url_for('profile') }}">Profile</a>
+<form method="POST" action="{{ url_for('logout') }}" style="display:inline;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" style="background:none;border:none;padding:0;color:inherit;font:inherit;cursor:pointer;">Logout</button>
+</form>
+
+</header>
+
+<main>
+
+<h1>Welcome, {{ user["name"] }}</h1>
+
+<p>Your investment account dashboard.</p>
+
+<div class="cards">
+
+<div class="card">
+<h3>Account Balance</h3>
+<div class="amount">
+₦{{ "{:,.2f}".format(user["balance"]) }}
+</div>
+</div>
+
+<div class="card">
+<h3>Approved Deposits</h3>
+<div class="amount">
+₦{{ "{:,.2f}".format(total_deposits) }}
+</div>
+</div>
+
+<div class="card">
+<h3>Pending Deposits</h3>
+<div class="amount">
+₦{{ "{:,.2f}".format(pending_deposits) }}
+</div>
+</div>
+
+<div class="card">
+<h3>Active Investments</h3>
+<div class="amount">
+₦{{ "{:,.2f}".format(active_investment_total) }}
+</div>
+<p style="margin-bottom:8px;color:#667085;">
+{{ active_investment_count }} active investment{% if active_investment_count != 1 %}s{% endif %}
+</p>
+
+<p style="margin-bottom:0;color:#667085;">
+Expected profit:
+<strong>₦{{ "{:,.2f}".format(expected_investment_profit) }}</strong>
+</p>
+</div>
+
+<div class="card">
+<h3>Next Maturity</h3>
+<div class="amount" style="font-size:20px;">
+{{ next_maturity if next_maturity else "None" }}
+</div>
+</div>
+
+<div class="card">
+<h3>Approved Withdrawals</h3>
+<div class="amount">
+₦{{ "{:,.2f}".format(total_withdrawals) }}
+</div>
+</div>
+
+</div>
+
+<div class="actions">
+
+<a href="/deposit" class="button">
+Request Deposit
+</a>
+
+<a href="/withdraw" class="button secondary">
+Request Withdrawal
+</a>
+
+<a href="{{ url_for("daily_tasks") }}" class="button secondary">
+Daily Tasks
+</a>
+
+<a href="/history" class="button secondary">
+Transaction History
+</a>
+<a href="/" class="button secondary">
+Main Website
+</a>
+
+<a href="{{ url_for('notifications') }}" class="action-link notification-link">
+    🔔 Notifications
+    {% if unread_notifications > 0 %}
+        <span class="notification-badge">{{ unread_notifications }}</span>
+    {% endif %}
+</a></div>
+
+<div class="notice">
+
+<strong>Important:</strong>
+
+Deposit requests remain pending until they are verified.
+Your account balance is not automatically increased when
+a deposit request is submitted.
+
+</div>
+
+</main>
+
+</body>
+</html>

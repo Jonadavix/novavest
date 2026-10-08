@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Balance Adjustments</title>
+
+<style>
+.adjustment-credit {
+    color: #15803d;
+    font-weight: bold;
+}
+.adjustment-debit {
+    color: #b91c1c;
+    font-weight: bold;
+}
+.adjustment-opening {
+    color: #1d4ed8;
+    font-weight: bold;
+}
+.adjustment-amount {
+    font-weight: bold;
+    white-space: nowrap;
+}
+</style>
+
+</head>
+<body>
+
+<h1>Balance Adjustments</h1>
+
+<p>
+    <a href="{{ url_for('admin_dashboard') }}">← Admin Dashboard</a>
+</p>
+
+<hr>
+
+<h2>Create Adjustment</h2>
+
+<form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <p>
+        <label>User:</label><br>
+        <select name="user_id" required>
+            <option value="">Select user</option>
+            {% for user in users %}
+                <option value="{{ user['id'] }}">
+                    {{ user['name'] }} — {{ user['email'] }} — ₦{{ "{:,.2f}".format(user['balance']) }}
+                </option>
+            {% endfor %}
+        </select>
+    </p>
+
+    <p>
+        <label>Adjustment Type:</label><br>
+        <select name="adjustment_action" required>
+            <option value="CREDIT">Credit — add money</option>
+            <option value="DEBIT">Debit — remove money</option>
+        </select>
+    </p>
+
+    <p>
+        <label>Amount:</label><br>
+        <input type="number" name="amount" min="0.01" step="0.01" required>
+    </p>
+
+    <p>
+        <label>Reason:</label><br>
+        <textarea name="reason" rows="4" cols="50" required></textarea>
+    </p>
+
+    <p>
+        <label>Admin password:</label><br>
+        <input
+            type="password"
+            name="admin_password"
+            autocomplete="current-password"
+            required
+        >
+        <br>
+        <small>
+            For security, enter your admin password again before applying
+            a balance adjustment.
+        </small>
+    </p>
+
+    <button type="submit">Add Balance Adjustment</button>
+</form>
+
+<hr>
+
+<h2>Adjustment History</h2>
+
+{% if adjustments %}
+<table border="1" cellpadding="8">
+    <tr>
+        <th>ID</th>
+        <th>User</th>
+        <th>Amount</th>
+        <th>Type</th>
+        <th>Reason</th>
+        <th>Date</th>
+    </tr>
+
+    {% for adjustment in adjustments %}
+    <tr>
+        <td>{{ adjustment['id'] }}</td>
+        <td>{{ adjustment['name'] }} ({{ adjustment['email'] }})</td>
+
+        {% if adjustment['adjustment_type'] == 'OPENING_BALANCE' %}
+            <td class="adjustment-amount adjustment-opening">
+                ₦{{ "{:,.2f}".format(adjustment['amount']|abs) }}
+            </td>
+            <td class="adjustment-opening">OPENING BALANCE</td>
+
+        {% elif adjustment['amount']|float > 0 %}
+            <td class="adjustment-amount adjustment-credit">
+                +₦{{ "{:,.2f}".format(adjustment['amount']|abs) }}
+            </td>
+            <td class="adjustment-credit">CREDIT</td>
+
+        {% else %}
+            <td class="adjustment-amount adjustment-debit">
+                −₦{{ "{:,.2f}".format(adjustment['amount']|abs) }}
+            </td>
+            <td class="adjustment-debit">DEBIT</td>
+        {% endif %}
+
+        <td>{{ adjustment['reason'] }}</td>
+        <td>{{ adjustment['created_at'] }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p>No balance adjustments recorded.</p>
+{% endif %}
+
+
+<script>
+document.querySelector("form").addEventListener("submit", function (event) {
+    const userSelect = document.querySelector('select[name="user_id"]');
+    const actionSelect = document.querySelector('select[name="adjustment_action"]');
+    const amountInput = document.querySelector('input[name="amount"]');
+    const reasonInput = document.querySelector('textarea[name="reason"]');
+
+    const userText = userSelect.options[userSelect.selectedIndex].text.trim();
+    const action = actionSelect.value;
+    const amount = parseFloat(amountInput.value);
+    const reason = reasonInput.value.trim();
+
+    if (!amount || amount <= 0 || !reason || !userSelect.value) {
+        return;
+    }
+
+    const formattedAmount = new Intl.NumberFormat("en-NG", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(amount);
+
+    const message =
+        "CONFIRM BALANCE ADJUSTMENT\\n\\n" +
+        "User: " + userText + "\\n" +
+        "Action: " + action + "\\n" +
+        "Amount: ₦" + formattedAmount + "\\n" +
+        "Reason: " + reason + "\\n\\n" +
+        "This will immediately change the user's balance.\\n\\n" +
+        "Continue?";
+
+    if (!window.confirm(message)) {
+        event.preventDefault();
+    }
+});
+</script>
+
+</body>
+</html>

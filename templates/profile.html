@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - NovaVest</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            color: #172033;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 14px;
+            padding: 24px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+
+        .row {
+            padding: 15px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .label {
+            font-size: 13px;
+            color: #667085;
+            margin-bottom: 5px;
+        }
+
+        .value {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .back {
+            display: inline-block;
+            margin-top: 20px;
+            margin-right: 8px;
+            padding: 11px 18px;
+            background: #172033;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+        }
+
+        .secondary {
+            background: #667085;
+        }
+
+        .logout {
+            background: #b42318;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 20px auto;
+                padding: 12px;
+            }
+
+            .card {
+                padding: 18px;
+            }
+
+            .back {
+                display: block;
+                text-align: center;
+                margin-right: 0;
+                margin-top: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <h1>My Profile</h1>
+
+        <div class="row">
+            <div class="label">Account ID</div>
+            <div class="value">{{ user["id"] }}</div>
+        </div>
+
+        <div class="row">
+            <div class="label">Name</div>
+            <div class="value">{{ user["name"] }}</div>
+        </div>
+
+        <div class="row">
+            <div class="label">Email</div>
+            <div class="value">{{ user["email"] }}</div>
+        </div>
+
+        <div class="row">
+            <div class="label">Account Balance</div>
+            <div class="value">₦{{ "{:,.2f}".format(user["balance"]) }}</div>
+        </div>
+
+        <div class="row">
+            <div class="label">Account Security</div>
+            <div class="value">Password Protected</div>
+        </div>
+
+        <a class="back" href="{{ url_for('change_password') }}">Change Password</a>
+        <a class="back secondary" href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+        <form method="POST" action="{{ url_for('logout') }}" style="display:inline;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="back logout" style="border:none;cursor:pointer;">Logout</button>
+</form>
+    </div>
+</div>
+
+</body>
+</html>

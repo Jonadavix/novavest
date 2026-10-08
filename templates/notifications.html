@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Notifications - NovaVest</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            color: #222;
+        }
+
+        header {
+            background: #111827;
+            color: white;
+            padding: 18px;
+        }
+
+        header strong {
+            font-size: 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 25px auto;
+            padding: 0 15px;
+        }
+
+        .notification {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 14px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+        }
+
+        .notification.unread {
+            border-left: 4px solid #2563eb;
+            background: #eff6ff;
+        }
+
+        .notification-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .unread-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: #2563eb;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+        }
+
+        .notification h3 {
+            margin: 0 0 8px;
+        }
+
+        .notification p {
+            margin: 0 0 8px;
+            line-height: 1.5;
+        }
+
+        .date {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid #eef0f3;
+        }
+
+        .empty {
+            background: white;
+            padding: 25px;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        .back {
+            display: inline-block;
+            margin-bottom: 20px;
+            text-decoration: none;
+            color: #2563eb;
+            font-weight: 600;
+        }
+
+        @media (max-width: 600px) {
+            header {
+                padding: 16px;
+            }
+
+            header strong {
+                font-size: 18px;
+            }
+
+            .container {
+                margin: 18px auto;
+                padding: 0 12px;
+            }
+
+            .notification {
+                padding: 15px;
+                margin-bottom: 12px;
+            }
+
+            .notification-header {
+                align-items: flex-start;
+            }
+
+            .notification h3 {
+                font-size: 16px;
+                line-height: 1.4;
+            }
+
+            .notification p {
+                font-size: 14px;
+            }
+
+            .back {
+                display: block;
+                margin-bottom: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <strong>NovaVest</strong>
+</header>
+
+<div class="container">
+
+    <a href="{{ url_for('dashboard') }}" class="back">
+        ← Back to Dashboard
+    </a>
+
+    <h2>Notifications</h2>
+
+    {% if notifications %}
+
+        {% for notification in notifications %}
+            <div class="notification {% if notification['is_read'] == 0 %}unread{% endif %}">
+
+                <div class="notification-header">
+                    <h3>{{ notification["title"] }}</h3>
+
+                    {% if notification["is_read"] == 0 %}
+                        <span class="unread-badge">UNREAD</span>
+                    {% endif %}
+                </div>
+
+                <p>{{ notification["message"] }}</p>
+
+                {% if notification["is_read"] == 0 %}
+                    <form method="POST"
+                          action="{{ url_for('mark_notification_read', notification_id=notification['id']) }}"
+                          style="margin-top: 12px;">
+                        <input type="hidden"
+                               name="csrf_token"
+                               value="{{ csrf_token() }}">
+
+                        <button type="submit"
+                                style="padding: 8px 12px;
+                                       border: none;
+                                       border-radius: 8px;
+                                       background: #2563eb;
+                                       color: white;
+                                       font-weight: 600;
+                                       cursor: pointer;">
+                            Mark as Read
+                        </button>
+                    </form>
+                {% endif %}
+
+                <div class="date">
+                    {{ notification["created_at"] }}
+                </div>
+
+            </div>
+        {% endfor %}
+
+    {% else %}
+
+        <div class="empty">
+            You have no notifications yet.
+        </div>
+
+    {% endif %}
+
+</div>
+
+</body>
+</html>

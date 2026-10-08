@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Daily Tasks — Admin — NovaVest</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f5f7fb;
+    color: #172033;
+}
+
+header {
+    background: #101828;
+    color: white;
+    padding: 18px 6%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+header a {
+    color: white;
+    text-decoration: none;
+}
+
+main {
+    max-width: 1150px;
+    margin: auto;
+    padding: 30px 6%;
+}
+
+.card {
+    background: white;
+    padding: 22px;
+    margin-bottom: 20px;
+    border-radius: 14px;
+    box-shadow: 0 5px 20px rgba(0,0,0,.06);
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 11px;
+    margin: 6px 0 12px;
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+}
+
+textarea {
+    min-height: 80px;
+}
+
+button {
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    background: #1d4ed8;
+    color: white;
+    font-weight: bold;
+}
+
+.danger {
+    background: #b42318;
+}
+
+.success {
+    background: #067647;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    text-align: left;
+    padding: 12px 8px;
+    border-bottom: 1px solid #eaecf0;
+    vertical-align: top;
+}
+
+.badge {
+    padding: 5px 9px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.active {
+    background: #e8f7ee;
+    color: #166534;
+}
+
+.inactive {
+    background: #fee4e2;
+    color: #b42318;
+}
+
+.flash {
+    padding: 12px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    background: #eef2ff;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.back {
+    color: #1d4ed8;
+    text-decoration: none;
+}
+
+@media(max-width:700px) {
+    table {
+        display: block;
+        overflow-x: auto;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <strong>NovaVest Admin</strong>
+
+    <div>
+        <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+        &nbsp; | &nbsp;
+        <a href="{{ url_for('admin_daily_task_completions') }}">
+            Completion History
+        </a>
+    </div>
+</header>
+
+<main>
+
+<a class="back" href="{{ url_for('admin_dashboard') }}">
+← Back to Admin Dashboard
+</a>
+
+<h1>Daily Tasks Management</h1>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="card">
+
+<h2>➕ Add New Daily Task</h2>
+<p style="color:#667085;">
+    Create as many daily tasks as you want for each investment plan.
+    Each task can have its own reward and task type.
+</p>
+
+<form method="POST"
+      action="{{ url_for('admin_create_daily_task') }}">
+
+<input type="hidden"
+       name="csrf_token"
+       value="{{ csrf_token() }}">
+
+<label>Investment Plan</label>
+
+<select name="plan_id" required>
+    <option value="">Select plan</option>
+
+    {% for plan in plans %}
+        <option value="{{ plan['id'] }}">
+            {{ plan['name'] }}
+        </option>
+    {% endfor %}
+</select>
+
+<label>Task Title</label>
+
+<input type="text"
+       name="title"
+       placeholder="Example: Daily Check-in"
+       required>
+
+<label>Description</label>
+
+<textarea name="description"
+          placeholder="Describe what the user should do"></textarea>
+
+<label>Reward (₦)</label>
+
+<input type="number"
+       name="reward"
+       min="0"
+       step="0.01"
+       placeholder="100"
+       required>
+
+<label>Task Type</label>
+
+<select name="task_type">
+    <option value="daily_checkin">Daily Check-in</option>
+    <option value="daily_review">Daily Review</option>
+    <option value="daily_activity">Daily Activity</option>
+    <option value="custom">Custom</option>
+</select>
+
+<button type="submit">
+Create Task
+</button>
+
+</form>
+
+</div>
+
+<div class="card">
+
+<h2>Existing Tasks</h2>
+
+{% if tasks %}
+
+<table>
+
+<thead>
+<tr>
+    <th>Plan</th>
+    <th>Task</th>
+    <th>Reward</th>
+    <th>Status</th>
+    <th>Completions</th>
+    <th>Actions</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for task in tasks %}
+
+<tr>
+
+<td>{{ task["plan_name"] }}</td>
+
+<td>
+<strong>{{ task["title"] }}</strong>
+
+{% if task["description"] %}
+<br>
+<small>{{ task["description"] }}</small>
+{% endif %}
+</td>
+
+<td>
+₦{{ "{:,.2f}".format(task["reward"]) }}
+</td>
+
+<td>
+
+{% if task["active"] %}
+
+<span class="badge active">
+Active
+</span>
+
+{% else %}
+
+<span class="badge inactive">
+Inactive
+</span>
+
+{% endif %}
+
+</td>
+
+<td>
+{{ task["completion_count"] }}
+</td>
+
+<td>
+
+<div class="actions">
+
+<form method="POST"
+      action="{{ url_for('admin_toggle_daily_task', task_id=task['id']) }}">
+
+<input type="hidden"
+       name="csrf_token"
+       value="{{ csrf_token() }}">
+
+<button type="submit"
+        class="{% if task['active'] %}danger{% else %}success{% endif %}">
+
+{% if task["active"] %}
+Deactivate
+{% else %}
+Activate
+{% endif %}
+
+</button>
+
+</form>
+
+<details style="margin-top:8px;">
+    <summary style="cursor:pointer;color:#1d4ed8;font-weight:bold;">
+        Edit Task
+    </summary>
+
+    <form method="POST"
+          action="{{ url_for('admin_edit_daily_task', task_id=task['id']) }}"
+          style="margin-top:12px;min-width:260px;">
+
+        <input type="hidden"
+               name="csrf_token"
+               value="{{ csrf_token() }}">
+
+        <label>Investment Plan</label>
+        <select name="plan_id" required>
+            {% for plan in plans %}
+                <option value="{{ plan['id'] }}"
+                    {% if plan['id'] == task['plan_id'] %}selected{% endif %}>
+                    {{ plan['name'] }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <label>Task Title</label>
+        <input type="text"
+               name="title"
+               value="{{ task['title'] }}"
+               required>
+
+        <label>Description</label>
+        <textarea name="description">{{ task['description'] }}</textarea>
+
+        <label>Reward (₦)</label>
+        <input type="number"
+               name="reward"
+               min="0"
+               step="0.01"
+               value="{{ task['reward'] }}"
+               required>
+
+        <label>Task Type</label>
+        <select name="task_type">
+            <option value="daily_checkin"
+                {% if task['task_type'] == 'daily_checkin' %}selected{% endif %}>
+                Daily Check-in
+            </option>
+
+            <option value="daily_review"
+                {% if task['task_type'] == 'daily_review' %}selected{% endif %}>
+                Daily Review
+            </option>
+
+            <option value="daily_activity"
+                {% if task['task_type'] == 'daily_activity' %}selected{% endif %}>
+                Daily Activity
+            </option>
+
+            <option value="custom"
+                {% if task['task_type'] == 'custom' %}selected{% endif %}>
+                Custom
+            </option>
+        </select>
+
+        <button type="submit">
+            Save Changes
+        </button>
+
+    </form>
+</details>
+
+</div>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+{% else %}
+
+<p>No daily tasks found.</p>
+
+{% endif %}
+
+</div>
+
+</main>
+
+</body>
+</html>

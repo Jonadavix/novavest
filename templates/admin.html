@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Admin Dashboard — NovaVest</title>
+
+<style>
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f5f7fb;
+    color: #172033;
+}
+
+header {
+    background: #101828;
+    color: white;
+    padding: 18px 5%;
+    display: flex;
+    justify-content: space-between;
+}
+
+header a {
+    color: white;
+    text-decoration: none;
+}
+
+main {
+    padding: 30px 5%;
+}
+
+.card {
+    background: white;
+    padding: 22px;
+    margin-bottom: 20px;
+    border-radius: 14px;
+    box-shadow: 0 4px 15px rgba(0,0,0,.06);
+}
+
+.item {
+    border-top: 1px solid #eee;
+    padding: 18px 0;
+}
+
+.item:first-child {
+    border-top: 0;
+}
+
+button {
+    padding: 10px 15px;
+    border: 0;
+    border-radius: 7px;
+    color: white;
+    font-weight: bold;
+    margin: 4px;
+}
+
+.approve {
+    background: #15803d;
+}
+
+.reject {
+    background: #b91c1c;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+@media(max-width:700px) {
+
+    table {
+        font-size: 13px;
+    }
+
+}
+
+</style>
+
+
+<style>
+.users-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.users-table-wrap table {
+    min-width: 700px;
+}
+
+@media (max-width: 700px) {
+    .users-table-wrap {
+        margin-left: -10px;
+        margin-right: -10px;
+        width: calc(100% + 20px);
+    }
+
+    .users-table-wrap table {
+        font-size: 13px;
+    }
+
+    .users-table-wrap th,
+    .users-table-wrap td {
+        padding: 10px 8px;
+        white-space: nowrap;
+    }
+}
+</style>
+
+</head>
+
+<body>
+<div style="margin:20px 0;display:flex;gap:10px;flex-wrap:wrap;">
+    <a href="{{ url_for('admin_investments') }}"
+       style="display:inline-block;padding:12px 18px;
+              background:#111827;color:white;
+              border-radius:8px;text-decoration:none;">
+        Investments
+    </a>
+
+    <a href="{{ url_for('admin_daily_tasks') }}"
+       style="display:inline-block;padding:12px 18px;
+              background:#067647;color:white;
+              border-radius:8px;text-decoration:none;">
+        Daily Tasks Management
+    </a>
+
+    <a href="{{ url_for('admin_daily_task_completions') }}"
+       style="display:inline-block;padding:12px 18px;
+              background:#067647;color:white;
+              border-radius:8px;text-decoration:none;">
+        Task Completions
+    </a>
+
+    <a href="{{ url_for('admin_reconciliation') }}" style="background:#172033;color:white;padding:10px 16px;border-radius:8px;text-decoration:none;">Reconciliation</a>
+    <a href="{{ url_for('admin_balance_adjustments') }}" style="background:#172033;color:white;padding:10px 16px;border-radius:8px;text-decoration:none;">Balance Adjustments</a>
+    <a href="{{ url_for('admin_audit_logs') }}" style="background:#172033;color:white;padding:10px 16px;border-radius:8px;text-decoration:none;">Audit Logs</a>
+    <a href="{{ url_for('admin_maturity') }}"
+       style="display:inline-block;padding:12px 18px;
+              background:#374151;color:white;
+              border-radius:8px;text-decoration:none;">
+        Maturity Monitor
+    </a>
+</div>
+
+
+<header>
+
+<strong>NovaVest Admin</strong>
+
+<form method="POST" action="{{ url_for('admin_logout') }}" style="display:inline;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" style="background:none;border:none;padding:0;color:inherit;font:inherit;cursor:pointer;">Logout</button>
+</form>
+
+</header>
+
+
+<main>
+
+<h1>Administrator Dashboard</h1>
+
+
+<div class="card">
+
+<h2>Admin Overview</h2>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;">
+
+<div style="background:#eff6ff;padding:16px;border-radius:10px;">
+<strong>Total Registered Users</strong>
+<p style="font-size:22px;margin:8px 0 0;">
+{{ financial_report["total_users"] }}
+</p>
+</div>
+
+<div style="background:#f0fdf4;padding:16px;border-radius:10px;">
+<strong>Active Users</strong>
+<p style="font-size:22px;margin:8px 0 0;">
+{{ financial_report["active_users"] }}
+</p>
+</div>
+
+<div style="background:#fefce8;padding:16px;border-radius:10px;">
+<strong>Task Rewards Paid</strong>
+<p style="font-size:22px;margin:8px 0 0;">
+₦{{ "{:,.2f}".format(financial_report["total_task_rewards"]) }}
+</p>
+</div>
+
+<div style="background:#faf5ff;padding:16px;border-radius:10px;">
+<strong>Task Completions</strong>
+<p style="font-size:22px;margin:8px 0 0;">
+{{ financial_report["task_completion_count"] }}
+</p>
+</div>
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h2>Financial Report</h2>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;">
+
+<div style="background:#f8fafc;padding:16px;border-radius:10px;">
+<strong>Approved Deposits</strong>
+<p style="font-size:22px;margin:8px 0 0;">₦{{ "{:,.2f}".format(financial_report["approved_deposits"]) }}</p>
+</div>
+
+<div style="background:#f8fafc;padding:16px;border-radius:10px;">
+<strong>Approved Withdrawals</strong>
+<p style="font-size:22px;margin:8px 0 0;">₦{{ "{:,.2f}".format(financial_report["approved_withdrawals"]) }}</p>
+</div>
+
+<div style="background:#f8fafc;padding:16px;border-radius:10px;">
+<strong>User Balances</strong>
+<p style="font-size:22px;margin:8px 0 0;">₦{{ "{:,.2f}".format(financial_report["user_balances"]) }}</p>
+</div>
+
+<div style="background:#f8fafc;padding:16px;border-radius:10px;">
+<strong>Active Investment Principal</strong>
+<p style="font-size:22px;margin:8px 0 0;">₦{{ "{:,.2f}".format(financial_report["active_investments"]) }}</p>
+<small>{{ financial_report["active_investment_count"] }} active investment(s)</small>
+</div>
+
+<div style="background:#f8fafc;padding:16px;border-radius:10px;">
+<strong>Investment Returns Paid</strong>
+<p style="font-size:22px;margin:8px 0 0;">₦{{ "{:,.2f}".format(financial_report["investment_returns"]) }}</p>
+</div>
+
+<div style="background:#f8fafc;padding:16px;border-radius:10px;">
+<strong>Net Funds Position</strong>
+<p style="font-size:22px;margin:8px 0 0;">₦{{ "{:,.2f}".format(financial_report["actual"]) }}</p>
+<small>User balances + active investments</small>
+</div>
+
+<div style="background:#f8fafc;padding:16px;border-radius:10px;">
+<strong>Pending Deposits</strong>
+<p style="font-size:22px;margin:8px 0 0;">₦{{ "{:,.2f}".format(financial_report["pending_deposit_total"]) }}</p>
+<small>{{ financial_report["pending_deposit_count"] }} pending</small>
+</div>
+
+<div style="background:#f8fafc;padding:16px;border-radius:10px;">
+<strong>Pending Withdrawals</strong>
+<p style="font-size:22px;margin:8px 0 0;">₦{{ "{:,.2f}".format(financial_report["pending_withdrawal_total"]) }}</p>
+<small>{{ financial_report["pending_withdrawal_count"] }} pending</small>
+</div>
+
+</div>
+
+<div style="margin-top:18px;padding:14px;border-radius:10px;background:{% if financial_report["ok"] %}#ecfdf5{% else %}#fef2f2{% endif %};color:{% if financial_report["ok"] %}#166534{% else %}#991b1b{% endif %};">
+<strong>Reconciliation: {% if financial_report["ok"] %}OK{% else %}CHECK REQUIRED{% endif %}</strong>
+<p style="margin:6px 0 0;">Difference: ₦{{ "{:,.2f}".format(financial_report["difference"]) }}</p>
+</div>
+
+</div>
+
+<div class="card">
+
+<h2>Recent Financial Activity</h2>
+
+<div class="users-table-wrap">
+<table>
+
+<tr>
+<th>Date</th>
+<th>User</th>
+<th>Type</th>
+<th>Amount</th>
+<th>Status</th>
+<th>Description</th>
+</tr>
+
+{% for activity in recent_activity %}
+
+<tr>
+<td>{{ activity["created_at"] }}</td>
+<td>{{ activity["name"] or "System" }}</td>
+<td>{{ activity["transaction_type"] }}</td>
+<td>₦{{ "{:,.2f}".format(activity["amount"]) }}</td>
+<td>{{ activity["status"] }}</td>
+<td>{{ activity["description"] or "—" }}</td>
+</tr>
+
+{% endfor %}
+
+{% if not recent_activity %}
+<tr>
+<td colspan="6">No financial activity yet.</td>
+</tr>
+{% endif %}
+
+</table>
+</div>
+
+</div>
+
+<div class="card">
+
+<h2>Pending Deposits</h2>
+
+{% if pending_deposits %}
+
+{% for deposit in pending_deposits %}
+
+<div class="item">
+
+<strong>{{ deposit["name"] }}</strong>
+
+<p>{{ deposit["email"] }}</p>
+
+<p>
+Amount:
+<strong>
+₦{{ "%.2f"|format(deposit["amount"]) }}
+</strong>
+</p>
+
+<p>
+Reference:
+{{ deposit["reference"] or "None provided" }}
+</p>
+
+<p>
+Requested:
+{{ deposit["created_at"] }}
+</p>
+
+<form
+method="POST"
+action="/admin/deposit/{{ deposit['id'] }}/approve"
+style="display:inline;"
+>
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<button class="approve">
+Approve
+</button>
+
+</form>
+
+<form
+method="POST"
+action="/admin/deposit/{{ deposit['id'] }}/reject"
+style="display:inline;"
+>
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<button class="reject">
+Reject
+</button>
+
+</form>
+
+</div>
+
+{% endfor %}
+
+{% else %}
+
+<p>No pending deposits.</p>
+
+{% endif %}
+
+</div>
+
+
+<div class="card">
+
+<h2>Pending Withdrawals</h2>
+
+{% if pending_withdrawals %}
+
+{% for withdrawal in pending_withdrawals %}
+
+<div class="item">
+
+<strong>{{ withdrawal["name"] }}</strong>
+
+<p>{{ withdrawal["email"] }}</p>
+
+<p>
+Amount:
+<strong>
+₦{{ "%.2f"|format(withdrawal["amount"]) }}
+</strong>
+</p>
+
+<p>
+Method:
+{{ withdrawal["method"] }}
+</p>
+
+<p>
+Account details:
+{{ withdrawal["account_details"] }}
+</p>
+
+<p>
+Requested:
+{{ withdrawal["created_at"] }}
+</p>
+
+<form
+method="POST"
+action="/admin/withdrawal/{{ withdrawal['id'] }}/approve"
+style="display:inline;"
+>
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<button class="approve">
+Approve
+</button>
+
+</form>
+
+<form
+method="POST"
+action="/admin/withdrawal/{{ withdrawal['id'] }}/reject"
+style="display:inline;"
+>
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<button class="reject">
+Reject
+</button>
+
+</form>
+
+</div>
+
+{% endfor %}
+
+{% else %}
+
+<p>No pending withdrawals.</p>
+
+{% endif %}
+
+</div>
+
+
+<div class="card">
+
+<h2>Registered Users</h2>
+
+<div class="users-table-wrap">
+<table>
+
+<tr>
+
+<th>Name</th>
+<th>Email</th>
+<th>Balance</th>
+<th>Active Investments</th><th>Status</th>
+<th>Details</th>
+
+</tr>
+
+{% for user in users %}
+
+<tr>
+
+<td>{{ user["name"] }}</td>
+
+<td>{{ user["email"] }}</td>
+
+<td>
+₦{{ "%.2f"|format(user["balance"]) }}
+</td>
+
+<td>
+₦{{ "%.2f"|format(user["active_investment_total"]) }}
+</td>
+
+<td>
+{% if user["status"] == "Active" %}
+<span style="display:inline-block;padding:5px 9px;border-radius:999px;background:#dcfce7;color:#166534;font-weight:bold;">Active</span>
+{% else %}
+<span style="display:inline-block;padding:5px 9px;border-radius:999px;background:#fee2e2;color:#991b1b;font-weight:bold;">Suspended</span>
+{% endif %}
+</td>
+
+<td>
+<a href="{{ url_for('admin_user_details', user_id=user['id']) }}"
+   style="display:inline-block;padding:7px 10px;border-radius:6px;text-decoration:none;background:#2563eb;color:white;">
+    View Details
+</a>
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+</div>
+
+</main>
+
+</body>
+
+</html>

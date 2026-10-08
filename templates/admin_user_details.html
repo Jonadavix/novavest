@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Details — NovaVest</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f5f7fb;
+    color: #172033;
+}
+
+header {
+    background: #101828;
+    color: white;
+    padding: 18px 6%;
+    display: flex;
+    justify-content: space-between;
+}
+
+header a {
+    color: white;
+    text-decoration: none;
+}
+
+main {
+    padding: 25px 6%;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.card {
+    background: white;
+    padding: 18px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,.06);
+}
+
+.amount {
+    font-size: 23px;
+    font-weight: bold;
+    margin-top: 8px;
+}
+
+.section {
+    background: white;
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,.06);
+}
+
+.table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+table {
+    width: 100%;
+    min-width: 650px;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 11px 9px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+    white-space: nowrap;
+}
+
+th {
+    background: #f8fafc;
+}
+
+.back {
+    display: inline-block;
+    margin-bottom: 15px;
+    padding: 10px 15px;
+    background: #101828;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+}
+
+.status {
+    font-weight: bold;
+}
+
+</style>
+
+<style>
+.user-details-page {
+    background: #f5f7fb;
+}
+
+.user-details-page main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.user-details-page .user-header {
+    margin-bottom: 20px;
+}
+
+.user-details-page .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 14px;
+    margin: 20px 0 28px;
+}
+
+.user-details-page .summary-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
+
+.user-details-page .summary-card .label {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 7px;
+}
+
+.user-details-page .summary-card .value {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.user-details-page section.card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+}
+
+.user-details-page .table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+}
+
+.user-details-page table {
+    width: 100%;
+    min-width: 720px;
+    border-collapse: collapse;
+}
+
+.user-details-page th,
+.user-details-page td {
+    padding: 11px 10px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+}
+
+.user-details-page th {
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.user-details-page td {
+    font-size: 14px;
+}
+
+@media (max-width: 700px) {
+    .user-details-page main {
+        padding: 12px;
+    }
+
+    .user-details-page .summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .user-details-page .summary-card {
+        padding: 13px;
+    }
+
+    .user-details-page .summary-card .value {
+        font-size: 17px;
+    }
+
+    .user-details-page section.card {
+        padding: 12px;
+        margin-bottom: 14px;
+    }
+
+    .user-details-page table {
+        min-width: 680px;
+    }
+
+    .user-details-page th,
+    .user-details-page td {
+        padding: 9px 8px;
+        white-space: nowrap;
+    }
+}
+</style>
+
+</head>
+
+<body class="user-details-page">
+
+<header>
+    <strong>NovaVest Admin</strong>
+    <form method="POST" action="{{ url_for('admin_logout') }}" style="display:inline;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" style="background:none;border:none;padding:0;color:inherit;font:inherit;cursor:pointer;">Logout</button>
+</form>
+</header>
+
+<main>
+
+<a class="back" href="{{ url_for('admin_dashboard') }}">
+    ← Back to Admin
+</a>
+
+<h1>{{ user["name"] }}</h1>
+<p>{{ user["email"] }}</p>
+
+<div class="section" style="margin-top:15px;">
+
+    <h2 style="margin-top:0;">Account Status</h2>
+
+    <p>
+        Current status:
+        <strong>{{ user["status"] }}</strong>
+    </p>
+
+    {% if user["status"] == "Active" %}
+
+    <form method="POST"
+          action="{{ url_for('admin_suspend_user', user_id=user['id']) }}"
+          style="display:inline;"
+          onsubmit="return confirm('Suspend this user account?');">
+
+        <input type="hidden"
+               name="csrf_token"
+               value="{{ csrf_token() }}">
+
+        <button type="submit"
+                style="background:#b42318;color:white;border:none;
+                       padding:10px 16px;border-radius:8px;
+                       cursor:pointer;">
+            Suspend Account
+        </button>
+
+    </form>
+
+    {% else %}
+
+    <form method="POST"
+          action="{{ url_for('admin_activate_user', user_id=user['id']) }}"
+          style="display:inline;"
+          onsubmit="return confirm('Activate this user account?');">
+
+        <input type="hidden"
+               name="csrf_token"
+               value="{{ csrf_token() }}">
+
+        <button type="submit"
+                style="background:#067647;color:white;border:none;
+                       padding:10px 16px;border-radius:8px;
+                       cursor:pointer;">
+            Activate Account
+        </button>
+
+    </form>
+
+    {% endif %}
+
+</div>
+
+<div class="cards">
+
+    <div class="card">
+        <h3>Current Balance</h3>
+        <div class="amount">
+            ₦{{ "%.2f"|format(user["balance"]) }}
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Approved Deposits</h3>
+        <div class="amount">
+            ₦{{ "%.2f"|format(summary["approved_deposits"]) }}
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Approved Withdrawals</h3>
+        <div class="amount">
+            ₦{{ "%.2f"|format(summary["approved_withdrawals"]) }}
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Active Investments</h3>
+        <div class="amount">
+            ₦{{ "%.2f"|format(summary["active_investments"]) }}
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Completed Investments</h3>
+        <div class="amount">
+            ₦{{ "%.2f"|format(summary["completed_investments"]) }}
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Cancelled Investments</h3>
+        <div class="amount">
+            ₦{{ "%.2f"|format(summary["cancelled_investments"]) }}
+        </div>
+    </div>
+
+</div>
+
+<div class="section">
+<h2>Deposits</h2>
+
+<div class="table-wrap">
+<table>
+<tr>
+    <th>ID</th>
+    <th>Amount</th>
+    <th>Status</th>
+    <th>Date</th>
+</tr>
+
+{% for item in deposits %}
+<tr>
+    <td>#{{ item["id"] }}</td>
+    <td>₦{{ "%.2f"|format(item["amount"]) }}</td>
+    <td class="status">{{ item["status"] }}</td>
+    <td>{{ item["created_at"] }}</td>
+</tr>
+{% else %}
+<tr>
+    <td colspan="4">No deposits.</td>
+</tr>
+{% endfor %}
+
+</table>
+</div>
+</div>
+
+<div class="section">
+<h2>Withdrawals</h2>
+
+<div class="table-wrap">
+<table>
+<tr>
+    <th>ID</th>
+    <th>Amount</th>
+    <th>Status</th>
+    <th>Date</th>
+</tr>
+
+{% for item in withdrawals %}
+<tr>
+    <td>#{{ item["id"] }}</td>
+    <td>₦{{ "%.2f"|format(item["amount"]) }}</td>
+    <td class="status">{{ item["status"] }}</td>
+    <td>{{ item["created_at"] }}</td>
+</tr>
+{% else %}
+<tr>
+    <td colspan="4">No withdrawals.</td>
+</tr>
+{% endfor %}
+
+</table>
+</div>
+</div>
+
+<div class="section">
+<h2>Investments</h2>
+
+<div class="table-wrap">
+<table>
+<tr>
+    <th>ID</th>
+    <th>Plan</th>
+    <th>Amount</th>
+    <th>Status</th>
+    <th>Started</th>
+    <th>Maturity</th>
+    <th>Completed</th>
+</tr>
+
+{% for item in investments %}
+<tr>
+    <td>#{{ item["id"] }}</td>
+    <td>{{ item["plan_name"] }}</td>
+    <td>₦{{ "%.2f"|format(item["amount"]) }}</td>
+    <td class="status">{{ item["status"] }}</td>
+    <td>{{ item["started_at"] }}</td>
+    <td>{{ item["maturity_at"] }}</td>
+    <td>{{ item["completed_at"] or "—" }}</td>
+</tr>
+{% else %}
+<tr>
+    <td colspan="7">No investments.</td>
+</tr>
+{% endfor %}
+
+</table>
+</div>
+</div>
+
+<div class="section">
+<h2>Transaction History</h2>
+
+<div class="table-wrap">
+<table>
+<tr>
+    <th>ID</th>
+    <th>Type</th>
+    <th>Amount</th>
+    <th>Status</th>
+    <th>Description</th>
+    <th>Date</th>
+</tr>
+
+{% for item in transactions %}
+<tr>
+    <td>#{{ item["id"] }}</td>
+    <td>{{ item["transaction_type"] }}</td>
+    <td>₦{{ "%.2f"|format(item["amount"]) }}</td>
+    <td class="status">{{ item["status"] }}</td>
+    <td>{{ item["description"] or "—" }}</td>
+    <td>{{ item["created_at"] }}</td>
+</tr>
+{% else %}
+<tr>
+    <td colspan="6">No transactions.</td>
+</tr>
+{% endfor %}
+
+</table>
+</div>
+</div>
+
+<section class="card" style="margin-top:24px;">
+    <h2>User Audit History</h2>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Actor</th>
+                    <th>Action</th>
+                    <th>Entity</th>
+                    <th>Details</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for item in audit_history %}
+                <tr>
+                    <td>#{{ item["id"] }}</td>
+                    <td>
+                        {{ item["actor_type"] }}
+                        {% if item["actor_id"] %}
+                            #{{ item["actor_id"] }}
+                        {% endif %}
+                    </td>
+                    <td>{{ item["action"] }}</td>
+                    <td>
+                        {{ item["entity_type"] or "—" }}
+                        {% if item["entity_id"] %}
+                            #{{ item["entity_id"] }}
+                        {% endif %}
+                    </td>
+                    <td>{{ item["details"] or "—" }}</td>
+                    <td>{{ item["created_at"] }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6">No audit history found.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+</main>
+
+</body>
+</html>
