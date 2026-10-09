@@ -115,61 +115,212 @@ def create_notification(conn, user_id, title, message):
 
 
 def init_db():
-
     conn = get_db()
 
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            email TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
-            balance REAL NOT NULL DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
+    try:
+        conn.executescript("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                email TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL,
+                balance REAL NOT NULL DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                status TEXT NOT NULL DEFAULT 'Active'
+            );
 
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS deposits (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            amount REAL NOT NULL,
-            status TEXT NOT NULL DEFAULT 'Pending',
-            reference TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        )
-    """)
+            CREATE TABLE IF NOT EXISTS investment_plans (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL UNIQUE,
+                description TEXT NOT NULL,
+                minimum_amount REAL NOT NULL,
+                term_days INTEGER NOT NULL,
+                management_fee_percent REAL NOT NULL DEFAULT 0,
+                active INTEGER NOT NULL DEFAULT 1,
+                return_percent REAL NOT NULL DEFAULT 0
+            );
 
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS withdrawals (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            amount REAL NOT NULL,
-            method TEXT NOT NULL,
-            account_details TEXT NOT NULL,
-            status TEXT NOT NULL DEFAULT 'Pending',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        )
-    """)
+            CREATE TABLE IF NOT EXISTS deposits (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                amount REAL NOT NULL,
+                status TEXT NOT NULL DEFAULT 'Pending',
+                reference TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            );
 
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS transactions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            transaction_type TEXT NOT NULL,
-            amount REAL NOT NULL,
-            status TEXT NOT NULL,
-            description TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        )
-    """)
+            CREATE TABLE IF NOT EXISTS withdrawals (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                amount REAL NOT NULL,
+                method TEXT NOT NULL,
+                account_details TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'Pending',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            );
 
-    conn.commit()
-    conn.close()
+            CREATE TABLE IF NOT EXISTS transactions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                transaction_type TEXT NOT NULL,
+                amount REAL NOT NULL,
+                status TEXT NOT NULL,
+                description TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            );
 
+            CREATE TABLE IF NOT EXISTS investments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                plan_id INTEGER NOT NULL,
+                amount REAL NOT NULL,
+                status TEXT NOT NULL DEFAULT 'ACTIVE',
+                started_at TEXT NOT NULL,
+                maturity_at TEXT NOT NULL,
+                completed_at TEXT,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id),
+                FOREIGN KEY (plan_id) REFERENCES investment_plans(id)
+            );
+
+            CREATE TABLE IF NOT EXISTS investment_requests (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                request_token TEXT NOT NULL UNIQUE,
+                investment_id INTEGER,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS audit_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                actor_type TEXT NOT NULL,
+                actor_id INTEGER,
+                action TEXT NOT NULL,
+                entity_type TEXT,
+                entity_id INTEGER,
+                details TEXT,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS balance_adjustments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                amount REAL NOT NULL,
+                adjustment_type TEXT NOT NULL,
+                reason TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            );
+
+            CREATE TABLE IF NOT EXISTS daily_tasks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                plan_id INTEGER NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT NOT NULL DEFAULT '',
+                reward REAL NOT NULL DEFAULT 0,
+                task_type TEXT NOT NULL DEFAULT 'daily_checkin',
+                active INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (plan_id) REFERENCES investment_plans(id)
+            );
+
+            CREATE TABLE IF NOT EXISTS daily_task_completions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                task_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                task_date TEXT NOT NULL,
+                reward REAL NOT NULL,
+                completed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (task_id) REFERENCES daily_tasks(id),
+                FOREIGN KEY (user_id) REFERENCES users(id),
+                UNIQUE(task_id, user_id, task_date)
+            );
+
+            CREATE TABLE IF NOT EXISTS notifications (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                title TEXT NOT NULL,
+                message TEXT NOT NULL,
+                is_read INTEGER NOT NULL DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            );
+
+            CREATE TABLE IF NOT EXISTS password_reset_tokens (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                token_hash TEXT NOT NULL UNIQUE,
+                expires_at TIMESTAMP NOT NULL,
+                used_at TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_audit_logs_actor_created
+                ON audit_logs(actor_type, actor_id, created_at);
+            CREATE INDEX IF NOT EXISTS idx_audit_logs_created
+                ON audit_logs(created_at);
+            CREATE INDEX IF NOT EXISTS idx_audit_logs_entity
+                ON audit_logs(entity_type, entity_id);
+            CREATE INDEX IF NOT EXISTS idx_balance_adjustments_user_id
+                ON balance_adjustments(user_id);
+            CREATE INDEX IF NOT EXISTS idx_daily_task_completions_user_date
+                ON daily_task_completions(user_id, task_date);
+            CREATE INDEX IF NOT EXISTS idx_daily_tasks_plan
+                ON daily_tasks(plan_id);
+            CREATE INDEX IF NOT EXISTS idx_deposits_user_created
+                ON deposits(user_id, created_at);
+            CREATE INDEX IF NOT EXISTS idx_investment_requests_user
+                ON investment_requests(user_id);
+            CREATE INDEX IF NOT EXISTS idx_investments_status
+                ON investments(status);
+            CREATE INDEX IF NOT EXISTS idx_investments_user
+                ON investments(user_id);
+            CREATE INDEX IF NOT EXISTS idx_notifications_user_created
+                ON notifications(user_id, created_at);
+            CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_expires
+                ON password_reset_tokens(expires_at);
+            CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user
+                ON password_reset_tokens(user_id);
+            CREATE INDEX IF NOT EXISTS idx_transactions_user_created
+                ON transactions(user_id, created_at);
+            CREATE INDEX IF NOT EXISTS idx_withdrawals_user_created
+                ON withdrawals(user_id, created_at);
+        """)
+
+        migrations = {
+            "users": {
+                "status": "TEXT NOT NULL DEFAULT 'Active'"
+            },
+            "investment_plans": {
+                "return_percent": "REAL NOT NULL DEFAULT 0"
+            }
+        }
+
+        for table, columns in migrations.items():
+            existing = {
+                row["name"]
+                for row in conn.execute(
+                    f"PRAGMA table_info({table})"
+                ).fetchall()
+            }
+            for column, definition in columns.items():
+                if column not in existing:
+                    conn.execute(
+                        f"ALTER TABLE {table} ADD COLUMN "
+                        f"{column} {definition}"
+                    )
+
+        conn.commit()
+
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
 
 def current_user():
 

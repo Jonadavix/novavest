@@ -18,3 +18,4 @@ admin_template_before_*
 requirements_before_*
 
 *_after_*
+.env.backup
